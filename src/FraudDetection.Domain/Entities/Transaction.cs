@@ -2,7 +2,7 @@
 
 public class Transaction
 {
-public Guid Id { get; set; }
+public int Id { get; set; }
 
 public string CustomerId { get; set; }
 public decimal Amount { get; set; }
