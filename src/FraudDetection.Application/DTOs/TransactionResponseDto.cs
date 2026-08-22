@@ -5,9 +5,9 @@ using FraudDetection.Domain;
 
 namespace FraudDetection.Application.DTOs
 {
-	internal class TransactionResponseDto
+	public class TransactionResponseDto
 	{
-		public Guid Id { get; set; }
+		public int Id { get; set; }
 		public string CustomerId { get; set; }
 		public decimal Amount { get; set; }
 		public TransactionStatus Status { get; set; }
