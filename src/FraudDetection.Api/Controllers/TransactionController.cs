@@ -1,4 +1,5 @@
 ﻿using FraudDetection.Application.DTOs;
+using FraudDetection.Domain;
 using FraudDetection.Domain.Entities;
 using FraudDetection.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,23 @@ namespace FraudDetection.Api.Controllers
 		   });
 		   _context.SaveChanges();
 		   return Ok();
+		}
+
+		[HttpGet]
+		public IActionResult Create(int id)
+		{
+			var transaction = _context.Transactions
+								 .Where(x => x.Id == id)
+								 .Select(x => new TransactionResponseDto
+								 {
+									 Id = x.Id,
+									 CustomerId = x.CustomerId,
+									 Amount = x.Amount,
+									 Status = x.Status,
+									 Decision = x.Decision,
+									 CreatedAt = x.CreatedAt
+								 });
+			return Ok(transaction);
 		}
 	}
 }
