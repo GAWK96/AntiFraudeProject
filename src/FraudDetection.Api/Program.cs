@@ -1,3 +1,6 @@
+using FraudDetection.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -33,6 +36,8 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+builder.Services.AddDbContext<FraudDbContext>(options =>
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
