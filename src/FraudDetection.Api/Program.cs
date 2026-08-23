@@ -1,4 +1,5 @@
 using FraudDetection.Infrastructure.Persistence;
+using FraudDetection.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,7 @@ var summaries = new[]
 //.WithName("GetWeatherForecast");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddRabbitMQService(); 
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
