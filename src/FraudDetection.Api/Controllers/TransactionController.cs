@@ -2,6 +2,7 @@
 using FraudDetection.Domain;
 using FraudDetection.Domain.Entities;
 using FraudDetection.Infrastructure.Persistence;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FraudDetection.Api.Controllers
@@ -18,7 +19,7 @@ namespace FraudDetection.Api.Controllers
 		}
 
 		[HttpPost]
-		public IActionResult Create([FromBody] TransactionRequestDto request) 
+		public async Task<IActionResult> Create([FromBody] TransactionRequestDto request, IBus bus) 
 		{
 		   _context.Add(new Transaction
 		   {
@@ -26,7 +27,13 @@ namespace FraudDetection.Api.Controllers
 			   Amount = request.Amount,
 			   CreatedAt = DateTime.UtcNow
 		   });
-		   _context.SaveChanges();
+			_context.SaveChanges();
+			await bus.Publish(new TransactionResponseDto
+			{
+				CustomerId = request.CustomerId,
+				Amount = request.Amount,
+				CreatedAt = DateTime.UtcNow
+			});
 		   return Ok();
 		}
 
