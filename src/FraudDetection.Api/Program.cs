@@ -1,5 +1,6 @@
-using FraudDetection.Infrastructure.Persistence;
 using FraudDetection.Infrastructure;
+using FraudDetection.Infrastructure.Persistence;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,10 +30,20 @@ var summaries = new[]
 //.WithName("GetWeatherForecast");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddRabbitMQService(); 
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
+builder.Services.AddMassTransit(x =>
+{
+	x.UsingRabbitMq((context, cfg) =>
+	{
+		cfg.Host("amqp://localhost:5672", h =>
+		{
+			h.Username("guest");
+			h.Password("guest");
+		});
+	});
+});
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
