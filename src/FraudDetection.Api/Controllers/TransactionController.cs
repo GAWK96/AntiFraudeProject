@@ -21,17 +21,20 @@ namespace FraudDetection.Api.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Create([FromBody] TransactionRequestDto request, IBus bus) 
 		{
-		   _context.Add(new Transaction
-		   {
-			   CustomerId = request.CustomerId,
-			   Amount = request.Amount,
-			   CreatedAt = DateTime.UtcNow
-		   });
-			_context.SaveChanges();
-			await bus.Publish(new TransactionResponseDto
+			var transaction = new Transaction
 			{
 				CustomerId = request.CustomerId,
 				Amount = request.Amount,
+				CreatedAt = DateTime.UtcNow
+			};
+		   _context.Add(transaction);
+			_context.SaveChanges();
+			var getTransaction = _context.Transactions.FirstOrDefault(x => x.Id == transaction.Id);
+			await bus.Publish(new TransactionResponseDto
+			{
+				Id = getTransaction.Id,
+				CustomerId = getTransaction.CustomerId,
+				Amount = getTransaction.Amount,
 				CreatedAt = DateTime.UtcNow
 			});
 		   return Ok();
