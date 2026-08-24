@@ -27,11 +27,19 @@ namespace FraudDetection.Worker
 			else 
 			{ 
 			_logger.LogInformation("Processando Transação Id:{Id}", context.Message.Id);
-			var transaction = _context.Transactions.FirstOrDefault(x => x.Id == context.Message.Id);
+				var transaction = _context.Transactions.FirstOrDefault(x => x.Id == context.Message.Id);
 				if (transaction != null)
 				{
-					transaction.Status = TransactionStatus.Processed;
-					_context.MessageProcess.Add(new MessageProcess { Id = context.Message.Id, ProcessedAt = DateTime.UtcNow });
+					try
+					{
+						transaction.Status = TransactionStatus.Processed;
+						_context.MessageProcess.Add(new MessageProcess { Id = context.Message.Id, ProcessedAt = DateTime.UtcNow });
+					}
+					catch
+					{
+						_logger.LogError("Erro ao processar transação Id:{Id}", transaction.Id);
+						throw;
+					}
 					await _context.SaveChangesAsync();
 					_logger.LogInformation("Transação Processada Id:{Id}", transaction.Id);
 				}

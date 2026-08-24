@@ -21,6 +21,10 @@ builder.Services.AddMassTransit(x =>
 
 		cfg.ReceiveEndpoint("process-transaction", e =>
 		{
+			e.UseMessageRetry(r =>
+					r.Interval(
+						retryCount: 3,
+						interval: TimeSpan.FromSeconds(2)));
 			e.ConfigureConsumer<ProcessConsumer>(context);
 		});
 	});
