@@ -17,5 +17,7 @@ namespace FraudDetection.Infrastructure.Persistence
 						   .IsUnique();
 		}
 		public DbSet<Transaction> Transactions => Set<Transaction>();
+
+		public DbSet<MessageProcess> MessageProcess=> Set<MessageProcess>();
 	}
 }
