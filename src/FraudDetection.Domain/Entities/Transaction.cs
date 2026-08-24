@@ -11,5 +11,6 @@ public TransactionStatus Status { get; set; }
 
 public TransactionDecision Decision { get; set; }
 
+public Guid IdempotencyKey { get; set; }
 public DateTime CreatedAt { get; set; }
 }
