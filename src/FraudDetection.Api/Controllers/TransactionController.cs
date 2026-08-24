@@ -22,6 +22,12 @@ namespace FraudDetection.Api.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Create([FromBody] TransactionRequestDto request, IPublisher bus)
 		{
+			var checkTransaction = _context.Transactions.FirstOrDefault(x => x.IdempotencyKey == request.IdempotencyKey);
+
+			if (checkTransaction != null)
+			{
+				return Ok(checkTransaction);
+			}
 			var transaction = new Transaction
 			{
 				CustomerId = request.CustomerId,
@@ -29,11 +35,6 @@ namespace FraudDetection.Api.Controllers
 				CreatedAt = DateTime.UtcNow,
 				IdempotencyKey = request.IdempotencyKey
 			};
-			var checkTransaction = _context.Transactions.Where(x => x.IdempotencyKey == request.IdempotencyKey);
-			if (checkTransaction != null)
-			{
-				return Ok(checkTransaction);	
-			}
 			_context.Add(transaction);
 			_context.SaveChanges();
 			var getTransaction = _context.Transactions.FirstOrDefault(x => x.Id == transaction.Id);
