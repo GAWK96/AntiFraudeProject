@@ -13,5 +13,7 @@ namespace FraudDetection.Application.DTOs
 		public TransactionStatus Status { get; set; }
 		public TransactionDecision? Decision { get; set; }
 		public DateTime CreatedAt { get; set; }
+
+		public Guid MessageKey { get; set; }
 	}
 }
