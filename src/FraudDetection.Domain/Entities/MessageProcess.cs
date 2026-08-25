@@ -9,5 +9,6 @@ namespace FraudDetection.Domain.Entities
 		public int Id { get; set; }
 		public int TransactionId { get; set; }
 		public DateTime ProcessedAt { get; set; }
+		public Guid MessageKey { get; set; }
 	}
 }
