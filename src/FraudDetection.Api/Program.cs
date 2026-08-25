@@ -3,6 +3,8 @@ using FraudDetection.Infrastructure;
 using FraudDetection.Infrastructure.Persistence;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,19 @@ builder.Services.AddScoped<IPublisher, Publisher>();
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
+builder.Services
+	.AddOpenTelemetry()
+	.ConfigureResource(resource =>
+		resource.AddService("FraudDetection.Api"))
+	.WithTracing(tracing =>
+	{
+		tracing
+			.AddSource("MassTransit")
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
+			.AddSqlClientInstrumentation()
+			.AddConsoleExporter();
+	});
 builder.Services.AddMassTransit(x =>
 {
 	x.UsingRabbitMq((context, cfg) =>

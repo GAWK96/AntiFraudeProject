@@ -2,9 +2,22 @@ using FraudDetection.Infrastructure.Persistence;
 using FraudDetection.Worker;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
+builder.Services
+	.AddOpenTelemetry()
+	.ConfigureResource(resource =>
+		resource.AddService("FraudDetection.Worker"))
+	.WithTracing(tracing =>
+	{
+		tracing
+		    .AddSource("MassTransit")
+			.AddSqlClientInstrumentation()
+			.AddConsoleExporter();
+	});
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddMassTransit(x =>
