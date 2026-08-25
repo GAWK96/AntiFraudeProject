@@ -19,7 +19,8 @@ namespace FraudDetection.Worker
 		}
 		public async Task Consume(ConsumeContext<TransactionResponseDto> context)
 		{
-		    var getMessage = _context.MessageProcess.FirstOrDefault(x => x.Id == context.Message.Id);
+			_logger.LogInformation("Mensagem recebida Id:{Id}", context.Message.Id);
+			var getMessage = _context.MessageProcess.FirstOrDefault(x => x.MessageKey == context.Message.MessageKey);
 			if(getMessage != null) 
 			{
 				_logger.LogInformation("Mensagem já processada Id:{Id}", context.Message.Id);
@@ -33,7 +34,7 @@ namespace FraudDetection.Worker
 					try
 					{
 						transaction.Status = TransactionStatus.Processed;
-						_context.MessageProcess.Add(new MessageProcess { Id = context.Message.Id, ProcessedAt = DateTime.UtcNow });
+						_context.MessageProcess.Add(new MessageProcess { ProcessedAt = DateTime.UtcNow, MessageKey = context.Message.MessageKey });
 					}
 					catch
 					{
@@ -41,7 +42,7 @@ namespace FraudDetection.Worker
 						throw;
 					}
 					await _context.SaveChangesAsync();
-					_logger.LogInformation("Transação Processada Id:{Id}", transaction.Id);
+					_logger.LogInformation("Transação Processada Id:{Id}. Decisão:{Decision}", transaction.Id, transaction.Decision);
 				}
 			}
 		}
