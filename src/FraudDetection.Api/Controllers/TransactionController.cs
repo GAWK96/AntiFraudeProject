@@ -13,15 +13,18 @@ namespace FraudDetection.Api.Controllers
 	public class TransactionController : ControllerBase
 	{
 		private readonly FraudDbContext _context;
+		private readonly ILogger<TransactionController> _logger;
 
-		public TransactionController(FraudDbContext context)
+		public TransactionController(FraudDbContext context, ILogger<TransactionController> logger)
 		{
 			_context = context;
+			_logger = logger;
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> Create([FromBody] TransactionRequestDto request, IPublisher bus)
 		{
+			_logger.LogInformation("Criando transação Id:{Id}", request.IdempotencyKey);
 			var checkTransaction = _context.Transactions.FirstOrDefault(x => x.IdempotencyKey == request.IdempotencyKey);
 
 			if (checkTransaction != null)
@@ -37,15 +40,18 @@ namespace FraudDetection.Api.Controllers
 			};
 			_context.Add(transaction);
 			_context.SaveChanges();
+			_logger.LogInformation("Transação criada Id:{Id}", request.IdempotencyKey);
 			var getTransaction = _context.Transactions.FirstOrDefault(x => x.Id == transaction.Id);
 			await bus.PublishAsync(new TransactionResponseDto
 			{
 				Id = getTransaction.Id,
 				CustomerId = getTransaction.CustomerId,
 				Amount = getTransaction.Amount,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = DateTime.UtcNow,
+				MessageKey = Guid.NewGuid(),
 			});
-		   return Ok(getTransaction);
+			_logger.LogInformation("Mensagem publicada");
+			return Ok(getTransaction);
 		}
 
 		[HttpGet]
