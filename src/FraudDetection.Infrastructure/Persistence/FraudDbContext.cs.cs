@@ -12,12 +12,17 @@ namespace FraudDetection.Infrastructure.Persistence
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
-						modelBuilder.Entity<Transaction>()
+						modelBuilder.Entity<TransactionModel>()
+						   .ToTable("Transaction")
 						   .HasIndex(x => x.IdempotencyKey)
 						   .IsUnique();
+			modelBuilder.Entity<MessageModel>()
+			   .ToTable("Message")
+			   .HasIndex(x => x.MessageKey)
+			   .IsUnique();
 		}
-		public DbSet<Transaction> Transactions => Set<Transaction>();
+		public DbSet<TransactionModel> Transactions => Set<TransactionModel>();
 
-		public DbSet<MessageProcess> MessageProcess=> Set<MessageProcess>();
+		public DbSet<MessageModel> MessageModel=> Set<MessageModel>();
 	}
 }
