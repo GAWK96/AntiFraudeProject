@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using FraudDetection.Application.DTOs;
+using FraudDetection.Application.Interfaces;
 using FraudDetection.Domain;
 using FraudDetection.Domain.Entities;
 using FraudDetection.Infrastructure.Persistence;
@@ -11,38 +12,34 @@ namespace FraudDetection.Worker
 	internal sealed class ProcessConsumer : IConsumer<TransactionResponseDto>
 	{
 		private readonly ILogger<ProcessConsumer> _logger;
-		private readonly FraudDbContext _context;
-		public ProcessConsumer(ILogger<ProcessConsumer> logger, FraudDbContext context)
+		private readonly IFraudMetrics _metrics;
+		private readonly IFraudDetectionService _service;
+		public ProcessConsumer(ILogger<ProcessConsumer> logger, FraudDbContext context, IFraudMetrics metrics, IFraudDetectionService service)
 		{
 			_logger = logger;
-			_context = context;
+			_metrics = metrics;
+			_service = service;
 		}
 		public async Task Consume(ConsumeContext<TransactionResponseDto> context)
 		{
 			_logger.LogInformation("Mensagem recebida Id:{Id}", context.Message.Id);
-			var getMessage = _context.MessageProcess.FirstOrDefault(x => x.MessageKey == context.Message.MessageKey);
+			var getMessage = _service.GetMessageByKey(context.Message.MessageKey);
 			if(getMessage != null) 
 			{
 				_logger.LogInformation("Mensagem já processada Id:{Id}", context.Message.Id);
+				_metrics.DuplicatedMessage();
 			}
 			else 
 			{ 
-			_logger.LogInformation("Processando Transação Id:{Id}", context.Message.Id);
-				var transaction = _context.Transactions.FirstOrDefault(x => x.Id == context.Message.Id);
+				var transaction = _service.GetTransactionById(context.Message.Id);
 				if (transaction != null)
 				{
-					try
-					{
-						transaction.Status = TransactionStatus.Processed;
-						_context.MessageProcess.Add(new MessageProcess { ProcessedAt = DateTime.UtcNow, MessageKey = context.Message.MessageKey });
-					}
-					catch
-					{
-						_logger.LogError("Erro ao processar transação Id:{Id}", transaction.Id);
-						throw;
-					}
-					await _context.SaveChangesAsync();
-					_logger.LogInformation("Transação Processada Id:{Id}. Decisão:{Decision}", transaction.Id, transaction.Decision);
+						var decision = await _service.ProcessTransaction(transaction,context.Message.MessageKey);
+						_metrics.TransactionProcessed(decision);
+						_logger.LogInformation(
+							"Transação processada Id:{Id}. Decisão:{Decision}",
+							transaction.Id,
+							transaction.Decision);
 				}
 			}
 		}
