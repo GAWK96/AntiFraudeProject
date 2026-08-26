@@ -12,6 +12,7 @@ using OpenTelemetry.Trace;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFraudMetrics, FraudMetrics>();
 builder.Services.AddScoped<IFraudDetectionRepository, FraudDetectionRepository>();
 builder.Services.AddScoped<IFraudDetectionService, FraudDetectionService>();
 builder.Services.AddScoped<IPublisher, Publisher>();
