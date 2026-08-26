@@ -1,14 +1,29 @@
+using FraudDetection.Application.Interfaces;
+using FraudDetection.Application.Services;
+using FraudDetection.Infrastructure;
 using FraudDetection.Infrastructure.Persistence;
+using FraudDetection.Infrastructure.Repository;
 using FraudDetection.Worker;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFraudDetectionRepository, FraudDetectionRepository>();
+builder.Services.AddScoped<IFraudDetectionService, FraudDetectionService>();
+builder.Services.AddScoped<IPublisher, Publisher>();
 builder.Services.AddHostedService<Worker>();
 builder.Services
 	.AddOpenTelemetry()
+	.WithMetrics(metrics =>
+	{
+		metrics
+			.AddMeter("FraudDetection.Worker")
+			.AddConsoleExporter();
+	})
 	.ConfigureResource(resource =>
 		resource.AddService("FraudDetection.Worker"))
 	.WithTracing(tracing =>
@@ -20,6 +35,7 @@ builder.Services
 	});
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddSingleton<FraudMetrics>();
 builder.Services.AddMassTransit(x =>
 {
 	x.AddConsumer<ProcessConsumer>();

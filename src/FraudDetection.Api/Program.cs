@@ -1,6 +1,8 @@
 using FraudDetection.Application.Interfaces;
+using FraudDetection.Application.Services;
 using FraudDetection.Infrastructure;
 using FraudDetection.Infrastructure.Persistence;
+using FraudDetection.Infrastructure.Repository;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
@@ -14,6 +16,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPublisher, Publisher>();
+builder.Services.AddScoped<IFraudDetectionService, FraudDetectionService>();
+builder.Services.AddScoped<IFraudDetectionRepository, FraudDetectionRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
