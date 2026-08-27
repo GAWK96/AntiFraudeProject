@@ -1,0 +1,54 @@
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fraud-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: fraud-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Pass123"
+    ports:
+      - "1433:1433"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/FraudDetection.Api/Dockerfile
+    container_name: fraud-api
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=FraudDetectionDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;"
+
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Username: "guest"
+      RabbitMq__Password: "guest"
+
+    depends_on:
+      - sqlserver
+      - rabbitmq
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/FraudDetection.Worker/Dockerfile
+    container_name: fraud-worker
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=FraudDetectionDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;"
+
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Username: "guest"
+      RabbitMq__Password: "guest"
+
+    depends_on:
+      - sqlserver
+      - rabbitmq

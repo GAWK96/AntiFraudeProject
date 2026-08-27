@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="9.2.0" />
+    <ProjectReference Include="..\FraudDetection.Domain\FraudDetection.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FraudDetection.Domain\FraudDetection.Domain.csproj" />
+    <PackageReference Include="MassTransit" Version="8.5.10" />
   </ItemGroup>
 
   <PropertyGroup>

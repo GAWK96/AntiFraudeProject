@@ -36,17 +36,20 @@ builder.Services
 	});
 builder.Services.AddDbContext<FraudDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddSingleton<FraudMetrics>();
 builder.Services.AddMassTransit(x =>
 {
 	x.AddConsumer<ProcessConsumer>();
 
 	x.UsingRabbitMq((context, cfg) =>
 	{
-		cfg.Host("amqp://localhost:5672", h =>
+		var host = builder.Configuration["RabbitMq:Host"];
+		var username = builder.Configuration["RabbitMq:Username"];
+		var password = builder.Configuration["RabbitMq:Password"];
+
+		cfg.Host(host, "/", h =>
 		{
-			h.Username("guest");
-			h.Password("guest");
+			h.Username(username!);
+			h.Password(password!);
 		});
 
 		cfg.ReceiveEndpoint("process-transaction", e =>

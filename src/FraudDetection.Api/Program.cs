@@ -39,14 +39,23 @@ builder.Services.AddMassTransit(x =>
 {
 	x.UsingRabbitMq((context, cfg) =>
 	{
-		cfg.Host("amqp://localhost:5672", h =>
+		var host = builder.Configuration["RabbitMq:Host"];
+		var username = builder.Configuration["RabbitMq:Username"];
+		var password = builder.Configuration["RabbitMq:Password"];
+
+		cfg.Host(host, "/", h =>
 		{
-			h.Username("guest");
-			h.Password("guest");
+			h.Username(username!);
+			h.Password(password!);
 		});
 	});
 });
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+	var context = scope.ServiceProvider.GetRequiredService<FraudDbContext>();
+	context.Database.Migrate();
+}
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
