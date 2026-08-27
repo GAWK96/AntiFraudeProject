@@ -69,7 +69,7 @@ Os principais componentes são:
 11. A decisão é definida como `APPROVED`, `REJECTED` ou `REVIEW`.
 12. A transação e o registro da mensagem processada são persistidos.
 13. O cliente pode consultar o estado atualizado através de `GET /transactions/{id}`.
-
+```mermaid
 flowchart TD
     A[Cliente envia POST /transactions] --> B[API recebe requisição]
 
@@ -112,7 +112,7 @@ flowchart TD
     T --> U[SaveChanges / Commit]
 
     U --> V[Processamento concluído]
-
+```
 ## Idempotência e Deduplicação
 
 A solução trata idempotência em dois níveis.
