@@ -177,7 +177,7 @@ flowchart TD
 
     E --> F[Salva no SQL Server]
 
-    F --> G[Publica mensagem no RabbitMQ<br/>TransactionId + MessageId]
+    F --> G[Publica mensagem no RabbitMQ<br/>]
 
     G --> H[Worker consome mensagem]
 
