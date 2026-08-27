@@ -42,7 +42,109 @@ O fluxo principal consiste em uma API ASP.NET Core responsável por receber e pe
 
 ## Arquitetura
 
-Os principais componentes são:
+## Clean Architecture
+
+A solução foi estruturada seguindo princípios de **Clean Architecture**, buscando separar regras de negócio, casos de uso e detalhes de infraestrutura.
+
+┌───────────────┐                      ┌───────────────┐
+│      API      │                      │    WORKER     │
+└───────┬───────┘                      └───────┬───────┘
+        │                                      │
+        └──────────────────┬───────────────────┘
+                           ▼
+                ┌─────────────────────┐
+                │     APPLICATION     │◄──────────────┐
+                │                     │               │
+                │ Services            │               │
+                │ DTOs                │               │
+                │ Interfaces          │               │
+                └──────────┬──────────┘               │
+                           │                          │
+                           ▼                          │
+                ┌─────────────────────┐     ┌─────────┴──────────┐
+                │       DOMAIN        │     │   INFRASTRUCTURE   │
+                │                     │     │                    │
+                │ Entities            │     │ EF Core            │
+                │ Enums               │     │ SQL Server         │
+                │ Business Rules      │     │ Repositories       │
+                └─────────────────────┘     │ Unit of Work       │
+                                          └────────────────────┘
+
+A estrutura é dividida nos seguintes projetos:
+
+### FraudDetection.Domain
+
+Representa o núcleo da aplicação e contém os elementos relacionados ao domínio, como:
+
+- Entidades;
+- Enums;
+- Regras e conceitos de negócio.
+
+Essa camada não depende das camadas externas da aplicação.
+
+### FraudDetection.Application
+
+Contém os casos de uso e a lógica de aplicação, incluindo:
+
+- Services;
+- DTOs;
+- Interfaces e contratos.
+
+A camada Application utiliza o Domain e define abstrações que permitem que detalhes de infraestrutura sejam desacoplados da lógica da aplicação.
+
+### FraudDetection.Infrastructure
+
+Contém as implementações relacionadas à infraestrutura, como:
+
+- Entity Framework Core;
+- SQL Server;
+- Repositories;
+- `FraudDbContext`;
+- Unit of Work;
+- implementação de serviços externos e persistência.
+
+Essa camada implementa contratos definidos pelas camadas internas.
+
+### FraudDetection.Api
+
+É um dos pontos de entrada da aplicação.
+
+Responsável por:
+
+- disponibilizar os endpoints HTTP;
+- receber as requisições;
+- configurar Dependency Injection;
+- configurar RabbitMQ/MassTransit;
+- configurar observabilidade;
+- iniciar os casos de uso definidos na camada Application.
+
+A API evita concentrar regras de negócio nos Controllers, delegando o processamento para a camada Application.
+
+### FraudDetection.Worker
+
+É o segundo ponto de entrada da aplicação.
+
+Responsável por consumir as mensagens do RabbitMQ e acionar os casos de uso necessários para o processamento antifraude.
+
+Assim como a API, o Worker atua principalmente como camada de entrada e composição da aplicação, mantendo as regras de negócio nas camadas internas.
+
+### Dependências entre as camadas
+
+As dependências foram organizadas de forma que as regras de negócio não dependam diretamente de tecnologias externas.
+
+De forma simplificada:
+
+`API / Worker → Application → Domain`
+
+Enquanto a Infrastructure fornece implementações utilizadas pela aplicação através de abstrações:
+
+`Infrastructure → Application / Domain`
+
+A composição das dependências é realizada nos projetos de entrada através de Dependency Injection.
+
+Essa organização permite substituir detalhes de infraestrutura, como persistência ou mensageria, com menor impacto sobre as regras de negócio.
+
+Descrição dos componentes:
 
 * **FraudDetection.Api** — recebe requisições HTTP e disponibiliza os endpoints da aplicação.
 * **FraudDetection.Worker** — consome mensagens do RabbitMQ e executa o processamento antifraude.
