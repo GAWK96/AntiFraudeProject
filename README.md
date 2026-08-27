@@ -70,6 +70,49 @@ Os principais componentes são:
 12. A transação e o registro da mensagem processada são persistidos.
 13. O cliente pode consultar o estado atualizado através de `GET /transactions/{id}`.
 
+flowchart TD
+    A[Cliente envia POST /transactions] --> B[API recebe requisição]
+
+    B --> C{IdempotencyKey já existe?}
+
+    C -->|Sim| D[Retorna transação existente]
+
+    C -->|Não| E[Cria Transaction<br/>Status = Pending<br/>Decision = null]
+
+    E --> F[Salva no SQL Server]
+
+    F --> G[Publica mensagem no RabbitMQ<br/>TransactionId + MessageId]
+
+    G --> H[Worker consome mensagem]
+
+    H --> I{Mensagem já foi processada??}
+
+    I -->|Sim| J[Ignora mensagem duplicada]
+
+    I -->|Não| K[Busca Transaction no SQL Server]
+
+    K --> L[Status = Processing]
+
+    L --> M[Executa regras antifraude]
+
+    M --> N{Decisão}
+
+    N -->|Approved| O[APPROVED]
+    N -->|Review| P[REVIEW]
+    N -->|Rejected| Q[REJECTED]
+
+    O --> R[Atualiza Transaction]
+    P --> R
+    Q --> R
+
+    R --> S[Status = Processed<br/>Decision = resultado]
+
+    S --> T[Registra a mensagem na tabela]
+
+    T --> U[SaveChanges / Commit]
+
+    U --> V[Processamento concluído]
+
 ## Idempotência e Deduplicação
 
 A solução trata idempotência em dois níveis.
