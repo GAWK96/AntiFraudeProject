@@ -46,29 +46,23 @@ O fluxo principal consiste em uma API ASP.NET Core responsável por receber e pe
 
 A solução foi estruturada seguindo princípios de **Clean Architecture**, buscando separar regras de negócio, casos de uso e detalhes de infraestrutura.
 
-┌───────────────┐                      ┌───────────────┐
-│      API      │                      │    WORKER     │
-└───────┬───────┘                      └───────┬───────┘
-        │                                      │
-        └──────────────────┬───────────────────┘
-                           ▼
-                ┌─────────────────────┐
-                │     APPLICATION     │◄──────────────┐
-                │                     │               │
-                │ Services            │               │
-                │ DTOs                │               │
-                │ Interfaces          │               │
-                └──────────┬──────────┘               │
-                           │                          │
-                           ▼                          │
-                ┌─────────────────────┐     ┌─────────┴──────────┐
-                │       DOMAIN        │     │   INFRASTRUCTURE   │
-                │                     │     │                    │
-                │ Entities            │     │ EF Core            │
-                │ Enums               │     │ SQL Server         │
-                │ Business Rules      │     │ Repositories       │
-                └─────────────────────┘     │ Unit of Work       │
-                                          └────────────────────┘
+   ```mermaid
+flowchart TD
+
+    API[API]
+    WORKER[WORKER]
+
+    APP["APPLICATION<br/><br/>Services<br/>DTOs<br/>Interfaces"]
+    DOMAIN["DOMAIN<br/><br/>Entities<br/>Enums<br/>Business Rules"]
+    INFRA["INFRASTRUCTURE<br/><br/>EF Core<br/>SQL Server<br/>Repositories<br/>Unit of Work"]
+
+    API --> APP
+    WORKER --> APP
+
+    APP --> DOMAIN
+
+    INFRA --> APP
+```
 
 A estrutura é dividida nos seguintes projetos:
 
